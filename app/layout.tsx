@@ -1,21 +1,18 @@
-import type React from "react"
+import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { cn } from "@/lib/utils"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
-import PageTransition from "@/components/page-transition"
-import ScrollToTop from "@/components/scroll-to-top"
 import { constructMetadata } from "@/lib/metadata"
 import { Analytics } from "@/components/analytics"
 import { ChatbotWidget } from "@/components/chatbot-widget"
-import "./globals.css"
-import { cn } from "@/lib/utils"
+import PageTransition from "@/components/page-transition"
+import ScrollToTop from "@/components/scroll-to-top"
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-})
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = constructMetadata({
   title: "ListHub - Your Local Marketplace",
@@ -39,7 +36,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
+      <head>
+        <link rel="preload" href="/hero-listhub.mp4" as="video" type="video/mp4" media="(min-width: 768px)" />
+        <link rel="preload" href="/hero-listhub-mobile.mp4" as="video" type="video/mp4" media="(max-width: 767px)" />
+        <link rel="preload" href="/hero-poster.jpg" as="image" type="image/jpeg" />
+      </head>
+      <body className={cn(
+        "min-h-screen bg-background font-sans antialiased",
+        inter.className
+      )}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -47,11 +52,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Analytics />
-          <Header />
-          <main className="flex-1">
-            <PageTransition>{children}</PageTransition>
-          </main>
-          <Footer />
+          <div className="relative flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">
+              <PageTransition>{children}</PageTransition>
+            </main>
+            <Footer />
+          </div>
           <ChatbotWidget />
           <ScrollToTop />
           <Toaster />

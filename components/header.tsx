@@ -21,7 +21,10 @@ export default function Header() {
   const pathname = usePathname()
   
   useEffect(() => {
+    if (!supabase) return
+
     const getUser = async () => {
+      if (!supabase) return
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
     }
@@ -37,6 +40,7 @@ export default function Header() {
   }, [])
 
   const handleSignOut = async () => {
+    if (!supabase) return
     await supabase.auth.signOut()
   }
 
@@ -83,14 +87,15 @@ export default function Header() {
     >
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/">
             <motion.span
               className="text-xl font-bold"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
             >
-              {SITE_NAME}
+              <span>LIST</span>
+              <span className="text-muted-foreground">HUB</span>
             </motion.span>
           </Link>
           <nav className="hidden md:flex gap-6">
@@ -130,8 +135,16 @@ export default function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <UserIcon className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
+                  {user.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt={user.user_metadata?.full_name || "User avatar"}
+                      className="h-full w-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <UserIcon className="h-5 w-5" />
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">

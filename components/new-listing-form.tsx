@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -17,43 +16,12 @@ import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import ImageUploadZone from "@/components/image-upload-zone"
 import TagInput from "@/components/tag-input"
+import LocationField from "@/components/form-fields/location-field"
 import type { Category, Location } from "@/lib/supabase/schema"
-
-// Form validation schema
-const formSchema = z.object({
-  title: z
-    .string()
-    .min(5, {
-      message: "Title must be at least 5 characters.",
-    })
-    .max(100, {
-      message: "Title must not exceed 100 characters.",
-    }),
-  description: z
-    .string()
-    .min(20, {
-      message: "Description must be at least 20 characters.",
-    })
-    .max(2000, {
-      message: "Description must not exceed 2000 characters.",
-    }),
-  price: z
-    .string()
-    .optional()
-    .transform((val) => (val === "" ? null : Number(val))),
-  category_id: z.string({
-    required_error: "Please select a category.",
-  }),
-  location_id: z.string({
-    required_error: "Please select a location.",
-  }),
-  contact_info: z.string().min(5, {
-    message: "Contact information is required.",
-  }),
-  tags: z.array(z.string()).optional(),
-})
-
-type FormValues = z.infer<typeof formSchema>
+import { formSchema, type FormValues, defaultValues } from "@/lib/types/form"
+import { useFormPersistence } from "@/lib/hooks/use-form-persistence"
+import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
 
 interface NewListingFormProps {
   categories: Category[]
@@ -70,38 +38,14 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
   const router = useRouter()
   const { toast } = useToast()
 
-  // Add state for subcategories
-  const [subcategories, setSubcategories] = useState<Category[]>([])
-  const [selectedParentCategory, setSelectedParentCategory] = useState<string>("")
-
-  // Add useEffect to fetch subcategories when parent category changes
-  useEffect(() => {
-    if (selectedParentCategory) {
-      const fetchSubcategories = async () => {
-        const filtered = categories.filter((cat) => cat.parent_id === selectedParentCategory)
-        setSubcategories(filtered)
-      }
-
-      fetchSubcategories()
-    } else {
-      setSubcategories([])
-    }
-  }, [selectedParentCategory, categories])
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      price: "",
-      category_id: "",
-      location_id: "",
-      contact_info: "",
-      tags: [],
-    },
+    defaultValues,
   })
 
-  const onSubmit = async (values: FormValues) => {
+  useFormPersistence("new-listing-form", form)
+
+  const onSubmit = async (data: FormValues) => {
     if (images.length === 0) {
       setUploadError("Please upload at least one image")
       return
@@ -112,19 +56,35 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
     setUploadError(null)
 
     try {
+      const supabase = createClient()
+      
+      // First, create or get the location
+      const { data: location, error: locationError } = await supabase
+        .from("locations")
+        .upsert({
+          name: data.location.name,
+          state: data.location.state,
+          latitude: data.location.latitude,
+          longitude: data.location.longitude,
+        })
+        .select()
+        .single()
+
+      if (locationError) throw locationError
+
       // Create the listing
       const { data: listing, error: listingError } = await supabase
         .from("listings")
         .insert({
-          title: values.title,
-          description: values.description,
-          price: values.price,
-          category_id: values.category_id,
+          title: data.title,
+          description: data.description,
+          price: data.price,
+          category_id: data.category_id,
           user_id: userId,
-          location_id: values.location_id,
-          contact_info: values.contact_info,
+          location_id: location.id,
+          contact_info: data.contact_info,
           status: "active",
-          tags: tags, // Add tags to the listing
+          tags: data.tags,
         })
         .select()
         .single()
@@ -159,9 +119,9 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
 
       toast({
         title: "Success",
-        description: "Your listing has been created",
+        description: "Listing created successfully!",
       })
-
+      form.reset()
       router.push(`/listings/${listing.id}`)
       router.refresh()
     } catch (error: any) {
@@ -169,7 +129,7 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
       setUploadError(error.message || "There was an error creating your listing")
       toast({
         title: "Error",
-        description: "There was an error creating your listing",
+        description: "Failed to create listing. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -229,11 +189,20 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
                 <FormField
                   control={form.control}
                   name="price"
-                  render={({ field }) => (
+                  render={({ field: { value, onChange, ...field } }) => (
                     <FormItem>
                       <FormLabel>Price</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="Enter price (leave empty if not applicable)" {...field} />
+                        <Input
+                          type="number"
+                          placeholder="Enter price (leave empty if not applicable)"
+                          {...field}
+                          value={value ?? ""}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            onChange(val === "" ? null : Number(val))
+                          }}
+                        />
                       </FormControl>
                       <FormDescription>Enter a fair price or leave empty for "Contact for price"</FormDescription>
                       <FormMessage />
@@ -269,10 +238,7 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
                     <FormItem>
                       <FormLabel>Category</FormLabel>
                       <Select
-                        onValueChange={(value) => {
-                          field.onChange(value)
-                          setSelectedParentCategory(value)
-                        }}
+                        onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -281,57 +247,38 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {categories
-                            .filter((category) => !category.parent_id)
-                            .map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
-                      <FormDescription>Choose the main category for your listing</FormDescription>
+                      <FormDescription>Choose the category for your listing</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="subcategory_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subcategory</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={!selectedParentCategory || subcategories.length === 0}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={
-                                !selectedParentCategory
-                                  ? "Select a category first"
-                                  : subcategories.length === 0
-                                    ? "No subcategories available"
-                                    : "Select a subcategory"
-                              }
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {subcategories.map((subcategory) => (
-                            <SelectItem key={subcategory.id} value={subcategory.id}>
-                              {subcategory.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>Choose a more specific subcategory if applicable</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                <LocationField control={form.control} setValue={form.setValue} disabled={isSubmitting} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium">Images</h3>
+                  <p className="text-sm text-muted-foreground">Upload images of your item</p>
+                </div>
+
+                <ImageUploadZone
+                  onFilesSelected={setImages}
+                  maxFiles={5}
+                  disabled={isSubmitting}
+                  progress={uploadProgress}
+                  error={uploadError}
                 />
               </div>
             </CardContent>
@@ -339,63 +286,32 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
 
           <Card>
             <CardContent className="pt-6">
-              <FormItem>
-                <FormLabel>Tags</FormLabel>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium">Tags</h3>
+                  <p className="text-sm text-muted-foreground">Add relevant tags to help buyers find your listing</p>
+                </div>
+
                 <TagInput
                   value={tags}
                   onChange={setTags}
-                  placeholder="Add tags (press Enter after each tag)"
+                  maxTags={5}
+                  placeholder="Type a tag and press Enter"
                   disabled={isSubmitting}
-                  maxTags={10}
                 />
-                <FormDescription>
-                  Add relevant tags to help buyers find your listing (e.g., brand, size, condition)
-                </FormDescription>
-              </FormItem>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div>
-                <FormLabel>Images</FormLabel>
-                <div className="mt-2">
-                  <ImageUploadZone
-                    images={images}
-                    setImages={setImages}
-                    disabled={isSubmitting}
-                    error={uploadError}
-                    onError={setUploadError}
-                  />
-
-                  {isSubmitting && uploadProgress > 0 && (
-                    <div className="w-full mt-4">
-                      <div className="mb-2 flex justify-between text-sm">
-                        <span>Uploading images...</span>
-                        <span>{uploadProgress}%</span>
-                      </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                        <div
-                          className="h-full bg-primary transition-all duration-300"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </CardContent>
           </Card>
 
           <div className="flex justify-end">
-            <Button type="submit" size="lg" disabled={isSubmitting} className="min-w-32">
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Creating listing...
                 </>
               ) : (
-                "Create Listing"
+                "Create listing"
               )}
             </Button>
           </div>

@@ -2,13 +2,40 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getListings, getSiteStats, getCategories } from "@/lib/supabase/api"
-import CategoryMarquee from "@/components/category-marquee"
-import FeaturedListings from "@/components/featured-listings"
-import VideoHero from "@/components/video-hero"
-import TrendingCategories from "@/components/trending-categories"
-import StatsCounter from "@/components/stats-counter"
-import CategoryGrid from "@/components/category-grid"
+import dynamic from 'next/dynamic'
 import { constructMetadata } from "@/lib/metadata"
+
+// Dynamically import heavy components
+const CategoryMarquee = dynamic(() => import("@/components/category-marquee"), {
+  loading: () => <div className="h-32 bg-muted animate-pulse rounded-lg" />
+})
+const FeaturedListings = dynamic(() => import("@/components/featured-listings"), {
+  loading: () => <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+    {[...Array(6)].map((_, i) => (
+      <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
+    ))}
+  </div>
+})
+const VideoHero = dynamic(() => import("@/components/video-hero"), {
+  loading: () => <div className="h-[80vh] min-h-[600px] bg-muted animate-pulse" />
+})
+const TrendingCategories = dynamic(() => import("@/components/trending-categories"), {
+  loading: () => <div className="h-32 bg-muted animate-pulse rounded-lg" />
+})
+const StatsCounter = dynamic(() => import("@/components/stats-counter"), {
+  loading: () => <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+    {[...Array(4)].map((_, i) => (
+      <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
+    ))}
+  </div>
+})
+const CategoryGrid = dynamic(() => import("@/components/category-grid"), {
+  loading: () => <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    {[...Array(8)].map((_, i) => (
+      <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
+    ))}
+  </div>
+})
 
 export const metadata = constructMetadata({
   title: "ListHub - Your Local Marketplace",

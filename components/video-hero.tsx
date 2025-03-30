@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import FancyButton from "@/components/ui/fancy-button"
 import SearchBar from "@/components/search-bar"
@@ -10,6 +11,7 @@ import { MapPin } from "lucide-react"
 
 export default function VideoHero() {
   const [isLoaded, setIsLoaded] = useState(false)
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false)
 
   useEffect(() => {
     setIsLoaded(true)
@@ -19,17 +21,39 @@ export default function VideoHero() {
     <section className="relative w-full h-[80vh] min-h-[600px] overflow-hidden">
       {/* Video Background */}
       <div className="absolute inset-0 w-full h-full">
+        {/* Poster Image */}
+        <Image
+          src="/hero-poster.jpg"
+          alt="Hero background"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+          quality={90}
+        />
+        
+        {/* Video */}
         <video
           autoPlay
           muted
           loop
           playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          poster="/placeholder.svg?height=1080&width=1920"
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+            isVideoLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          poster="/hero-poster.jpg"
+          preload="metadata"
+          onLoadedData={() => setIsVideoLoaded(true)}
         >
           <source
             src="/hero-listhub.mp4"
             type="video/mp4"
+            media="(min-width: 768px)"
+          />
+          <source
+            src="/hero-listhub-mobile.mp4"
+            type="video/mp4"
+            media="(max-width: 767px)"
           />
           Your browser does not support the video tag.
         </video>

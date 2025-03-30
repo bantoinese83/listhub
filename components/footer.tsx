@@ -38,7 +38,15 @@ export default function Footer() {
     >
       <div className="container grid grid-cols-1 gap-8 py-8 md:grid-cols-4">
         <motion.div variants={itemVariants}>
-          <h3 className="text-lg font-semibold">{SITE_NAME}</h3>
+          <motion.div
+            className="mb-4"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <span className="text-2xl font-bold">LIST</span>
+            <span className="text-2xl font-bold text-muted-foreground">HUB</span>
+          </motion.div>
           <p className="mt-2 text-sm text-muted-foreground">{SITE_DESCRIPTION}</p>
           <div className="mt-4 flex space-x-4">
             <Link href="https://facebook.com" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -82,7 +90,7 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/categories/home-garden" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/categories/home-and-garden" className="text-muted-foreground hover:text-foreground transition-colors">
                 Home & Garden
               </Link>
             </li>
@@ -113,7 +121,7 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/categories/jobs-gigs" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/categories/jobs-and-gigs" className="text-muted-foreground hover:text-foreground transition-colors">
                 Jobs & Gigs
               </Link>
             </li>

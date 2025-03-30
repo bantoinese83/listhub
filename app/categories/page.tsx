@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { getCategoriesHierarchical } from "@/lib/supabase/api"
+import { getCategoriesHierarchical, getCategoryCounts } from "@/lib/supabase/api"
 import CategoryGridHierarchical from "@/components/category-grid-hierarchical"
 
 export const metadata: Metadata = {
@@ -8,12 +8,16 @@ export const metadata: Metadata = {
 }
 
 export default async function CategoriesPage() {
-  const serverCategories = await getCategoriesHierarchical()
+  const [serverCategories, categoryCounts] = await Promise.all([
+    getCategoriesHierarchical(),
+    getCategoryCounts()
+  ])
   
   // Transform the server categories to match the client component's expected format
   const clientCategories = serverCategories.map(category => ({
     ...category,
-    subcategories: category.children || []
+    subcategories: category.children || [],
+    listingCount: categoryCounts[category.id] || 0
   }))
 
   return (

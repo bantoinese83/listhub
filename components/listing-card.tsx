@@ -7,6 +7,8 @@ import { formatDistanceToNow } from "date-fns"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { FavoriteButton } from "@/components/favorite-button"
+import { BecomeAgentButton } from "@/components/become-agent-button"
+import { ManageAgents } from "@/components/manage-agents"
 import type { ListingWithDetails } from "@/lib/supabase/schema"
 import { useSession } from "@/lib/hooks/use-session"
 import { useRouter } from "next/navigation"
@@ -23,6 +25,8 @@ export function ListingCard({ listing, onFavoriteToggle }: ListingCardProps) {
   const { session } = useSession()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+
+  const isOwner = session?.user?.id === listing.user_id
 
   const handleClick = (e: React.MouseEvent) => {
     if (e.target instanceof HTMLElement && e.target.closest('button')) {
@@ -54,7 +58,9 @@ export function ListingCard({ listing, onFavoriteToggle }: ListingCardProps) {
               alt={listing.title}
               fill
               className="object-cover transition-transform group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              loading="lazy"
+              quality={80}
             />
             <div className="absolute top-2 right-2 z-10">
               {session?.user && (
@@ -96,10 +102,27 @@ export function ListingCard({ listing, onFavoriteToggle }: ListingCardProps) {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="p-4 pt-0">
+        <CardFooter className="p-4 pt-0 flex flex-col gap-2">
           <Button variant="outline" className="w-full" asChild>
             <Link href={`/listings/${listing.id}`}>View Details</Link>
           </Button>
+          
+          {session?.user && (
+            <>
+              {isOwner ? (
+                <ManageAgents
+                  listingId={listing.id}
+                  ownerId={listing.user_id}
+                />
+              ) : (
+                <BecomeAgentButton
+                  listingId={listing.id}
+                  ownerId={listing.user_id}
+                  isOwner={isOwner}
+                />
+              )}
+            </>
+          )}
         </CardFooter>
       </Card>
     </motion.div>

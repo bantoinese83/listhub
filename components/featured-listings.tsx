@@ -30,6 +30,9 @@ export default function FeaturedListings({ listings }: FeaturedListingsProps) {
                 alt={`${listing.title} - ${listing.description.substring(0, 50)}...`}
                 fill
                 className="object-cover"
+                loading="lazy"
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                quality={80}
               />
               {listing.is_featured && <Badge className="absolute top-2 right-2">Featured</Badge>}
             </div>

@@ -4,40 +4,43 @@ import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { getListings } from "@/lib/supabase/api"
+import { getListings, type ListingsResponse } from "@/lib/supabase/api"
 import ListingGrid from "@/components/listing-grid"
 import { constructMetadata } from "@/lib/metadata"
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export async function generateMetadata({ params }: CategoryPageProps) {
-  const supabase = createServerSupabaseClient()
-  const { data: category } = await supabase.from("categories").select("*").eq("slug", params.slug).single()
+  const { slug } = await params
+  const supabase = await createServerSupabaseClient()
+  const { data: category } = await supabase.from("categories").select("*").eq("slug", slug).single()
 
   if (!category) {
     return constructMetadata({
       title: "Category Not Found",
       description: "The category you're looking for doesn't exist.",
       noIndex: true,
+      pathname: `/categories/${slug}`,
     })
   }
 
   return constructMetadata({
     title: `${category.name} | Categories`,
     description: category.description || `Browse ${category.name} listings on ListingHub`,
-    pathname: `/categories/${params.slug}`,
+    pathname: `/categories/${slug}`,
   })
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
-  const supabase = createServerSupabaseClient()
+  const { slug } = await params
+  const supabase = await createServerSupabaseClient()
 
   // Get the category
-  const { data: category, error } = await supabase.from("categories").select("*").eq("slug", params.slug).single()
+  const { data: category, error } = await supabase.from("categories").select("*").eq("slug", slug).single()
 
   if (error || !category) {
     notFound()
@@ -52,7 +55,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     .order("name", { ascending: true })
 
   // Get listings for this category (including all subcategories)
-  let listings = []
+  let listings: ListingsResponse = { listings: [], total: 0, page: 1, totalPages: 1, limit: 12 }
 
   if (subcategories && subcategories.length > 0) {
     // If there are subcategories, get listings from all subcategories
@@ -74,7 +77,13 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       .limit(12)
 
     if (!error && data) {
-      listings = data
+      listings = {
+        listings: data,
+        total: data.length,
+        page: 1,
+        totalPages: 1,
+        limit: 12
+      }
     }
   } else {
     // If no subcategories, get listings directly from this category
@@ -118,7 +127,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               {subcategories.map((subcategory) => (
                 <Card key={subcategory.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
-                    <Link href={`/categories/${params.slug}/${subcategory.slug}`}>
+                    <Link href={`/categories/${slug}/${subcategory.slug}`}>
                       <h3 className="font-medium">{subcategory.name}</h3>
                       {subcategory.description && (
                         <p className="text-sm text-muted-foreground mt-1">{subcategory.description}</p>

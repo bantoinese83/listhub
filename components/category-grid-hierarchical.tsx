@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { Search } from "lucide-react"
 import {
   Home,
   Car,
@@ -115,6 +116,7 @@ const categoryColors: Record<string, string> = {
 
 interface CategoryWithSubcategories extends Category {
   subcategories: Category[]
+  listingCount: number
 }
 
 interface CategoryGridHierarchicalProps {
@@ -124,6 +126,7 @@ interface CategoryGridHierarchicalProps {
 export default function CategoryGridHierarchical({ initialCategories = [] }: CategoryGridHierarchicalProps) {
   const [categories, setCategories] = useState<CategoryWithSubcategories[]>(initialCategories)
   const [isLoading, setIsLoading] = useState(!initialCategories.length)
+  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     async function loadCategories() {
@@ -137,66 +140,109 @@ export default function CategoryGridHierarchical({ initialCategories = [] }: Cat
     loadCategories()
   }, [initialCategories])
 
+  // Filter categories based on search query
+  const filteredCategories = categories.filter(category => {
+    const searchLower = searchQuery.toLowerCase()
+    return (
+      category.name.toLowerCase().includes(searchLower) ||
+      category.description?.toLowerCase().includes(searchLower) ||
+      category.subcategories.some(sub => 
+        sub.name.toLowerCase().includes(searchLower) ||
+        sub.description?.toLowerCase().includes(searchLower)
+      )
+    )
+  })
+
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="space-y-4">
-            <div className="overflow-hidden transition-all hover:shadow-md rounded-lg border bg-card text-card-foreground">
-              <div className="p-6">
-                <div className="flex flex-col items-center space-y-2 text-center">
-                  <div className="rounded-full p-3 bg-muted animate-pulse">
-                    <div className="h-6 w-6" />
+      <div className="space-y-6">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <div className="h-10 bg-muted animate-pulse rounded-md" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="space-y-4">
+              <div className="overflow-hidden transition-all hover:shadow-md rounded-lg border bg-card text-card-foreground">
+                <div className="p-6">
+                  <div className="flex flex-col items-center space-y-2 text-center">
+                    <div className="rounded-full p-3 bg-muted animate-pulse">
+                      <div className="h-6 w-6" />
+                    </div>
+                    <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+                    <div className="h-4 w-48 bg-muted animate-pulse rounded" />
                   </div>
-                  <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-                  <div className="h-4 w-48 bg-muted animate-pulse rounded" />
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {categories.map((category: CategoryWithSubcategories) => {
-        const IconComponent = categoryIcons[category.slug] || ShoppingBag
-        const colorClass = categoryColors[category.slug] || "bg-gray-100 text-gray-700"
+    <div className="space-y-6">
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <input
+          type="text"
+          placeholder="Search categories..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
 
-        return (
-          <div key={category.id} className="space-y-4">
-            <Link href={`/categories/${category.slug}`}>
-              <div className="overflow-hidden transition-all hover:shadow-md rounded-lg border bg-card text-card-foreground">
-                <div className="p-6">
-                  <div className="flex flex-col items-center space-y-2 text-center">
-                    <div className={`rounded-full p-3 ${colorClass}`}>
-                      <IconComponent className="h-6 w-6" />
+      {filteredCategories.length === 0 ? (
+        <div className="text-center py-10">
+          <p className="text-muted-foreground">No categories found matching your search.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCategories.map((category: CategoryWithSubcategories) => {
+            const IconComponent = categoryIcons[category.slug] || ShoppingBag
+            const colorClass = categoryColors[category.slug] || "bg-gray-100 text-gray-700"
+
+            return (
+              <div key={category.id} className="space-y-4">
+                <Link href={`/categories/${category.slug}`}>
+                  <div className="overflow-hidden transition-all hover:shadow-md rounded-lg border bg-card text-card-foreground">
+                    <div className="p-6">
+                      <div className="flex flex-col items-center space-y-2 text-center">
+                        <div className={`rounded-full p-3 ${colorClass}`}>
+                          <IconComponent className="h-6 w-6" />
+                        </div>
+                        <h3 className="font-semibold">{category.name}</h3>
+                        {category.description && <p className="text-sm text-muted-foreground">{category.description}</p>}
+                        <p className="text-sm text-muted-foreground">{category.listingCount} listings</p>
+                      </div>
                     </div>
-                    <h3 className="font-semibold">{category.name}</h3>
-                    {category.description && <p className="text-sm text-muted-foreground">{category.description}</p>}
                   </div>
-                </div>
-              </div>
-            </Link>
+                </Link>
 
-            {category.subcategories && category.subcategories.length > 0 && (
-              <div className="grid grid-cols-2 gap-2">
-                {category.subcategories.map((subcategory) => (
-                  <Link
-                    key={subcategory.id}
-                    href={`/categories/${category.slug}/${subcategory.slug}`}
-                    className="text-sm p-2 rounded border hover:bg-muted transition-colors"
-                  >
-                    {subcategory.name}
-                  </Link>
-                ))}
+                {category.subcategories && category.subcategories.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {category.subcategories.map((subcategory) => (
+                      <Link
+                        key={subcategory.id}
+                        href={`/categories/${category.slug}/${subcategory.slug}`}
+                        className="text-sm p-2 rounded border hover:bg-muted transition-colors"
+                      >
+                        {subcategory.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        )
-      })}
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

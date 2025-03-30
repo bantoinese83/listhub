@@ -22,7 +22,7 @@ interface SubcategoryPageProps {
 }
 
 export async function generateMetadata({ params }: SubcategoryPageProps) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Get the parent category
   const { data: parentCategory } = await supabase.from("categories").select("*").eq("slug", params.slug).single()
@@ -32,6 +32,7 @@ export async function generateMetadata({ params }: SubcategoryPageProps) {
       title: "Category Not Found",
       description: "The category you're looking for doesn't exist.",
       noIndex: true,
+      pathname: `/categories/${params.slug}/${params.subslug}`,
     })
   }
 
@@ -48,6 +49,7 @@ export async function generateMetadata({ params }: SubcategoryPageProps) {
       title: "Subcategory Not Found",
       description: "The subcategory you're looking for doesn't exist.",
       noIndex: true,
+      pathname: `/categories/${params.slug}/${params.subslug}`,
     })
   }
 
@@ -60,7 +62,7 @@ export async function generateMetadata({ params }: SubcategoryPageProps) {
 }
 
 export default async function SubcategoryPage({ params, searchParams }: SubcategoryPageProps) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Get the parent category
   const { data: parentCategory, error: parentError } = await supabase

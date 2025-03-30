@@ -113,6 +113,8 @@ export default function ImageCarousel({ images }: ImageCarouselProps) {
               fill
               className="object-contain"
               priority={currentIndex === 0}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 75vw, 50vw"
+              quality={85}
             />
           </motion.div>
         </AnimatePresence>
@@ -173,6 +175,9 @@ export default function ImageCarousel({ images }: ImageCarouselProps) {
                 alt={`Thumbnail ${index + 1}`}
                 fill
                 className="object-cover"
+                loading="lazy"
+                sizes="64px"
+                quality={60}
               />
             </motion.button>
           ))}

@@ -9,19 +9,23 @@ A modern marketplace platform built with Next.js, Supabase, and TypeScript. List
   - Camera integration for taking listing photos
   - Rich text descriptions and tags
   - Location-based listing creation
+  - Category-based organization
 
 - 🔍 **Advanced Search & Filtering**
-  - Category-based browsing
+  - Category-based browsing with listing counts
   - Price range filtering
   - Location-based search
   - Tag-based filtering
   - Sort options (newest, price, etc.)
+  - Real-time search in categories
 
 - 👥 **User Features**
   - User profiles with avatar support
+  - Profile picture upload with camera integration
   - Favorites system
   - Real-time messaging between users
   - User verification system
+  - Profile customization
 
 - 🗺️ **Map Integration**
   - Interactive map view of listings
@@ -32,12 +36,14 @@ A modern marketplace platform built with Next.js, Supabase, and TypeScript. List
   - Mobile-first approach
   - Dark/Light mode support
   - Optimized for all devices
+  - Responsive navigation
 
 - 🔒 **Security & Trust**
   - User verification system
   - Report listing functionality
   - Safety tips and guidelines
   - Secure messaging system
+  - Row Level Security (RLS) for data protection
 
 ## Tech Stack
 
@@ -48,6 +54,7 @@ A modern marketplace platform built with Next.js, Supabase, and TypeScript. List
 - **State Management**: React Hooks
 - **Form Handling**: React Hook Form, Zod
 - **UI Components**: Framer Motion, Lucide Icons
+- **Image Optimization**: Next.js Image Component
 
 ## Getting Started
 
@@ -95,9 +102,14 @@ pnpm dev
 ### Database Setup
 
 1. Create a new Supabase project
-2. Run the SQL migrations in the `migrations` directory
-3. Set up the necessary storage buckets for images
-4. Configure authentication providers in Supabase
+2. Run the SQL migrations in the `supabase/migrations` directory
+3. Set up the necessary storage buckets:
+   - Create an "avatars" bucket for user profile pictures
+   - Create a "listing-images" bucket for listing photos
+4. Configure storage policies:
+   - Enable public access for the avatars bucket
+   - Set up RLS policies for secure access control
+5. Configure authentication providers in Supabase
 
 ## Project Structure
 
@@ -118,6 +130,8 @@ listhub/
 │   ├── supabase/         # Supabase client and types
 │   └── verification/     # Verification services
 ├── public/               # Static assets
+├── supabase/            # Supabase configuration
+│   └── migrations/      # Database migrations
 └── styles/              # Global styles
 ```
 
