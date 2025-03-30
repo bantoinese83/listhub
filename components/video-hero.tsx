@@ -28,7 +28,7 @@ export default function VideoHero() {
           poster="/placeholder.svg?height=1080&width=1920"
         >
           <source
-            src="https://assets.mixkit.co/videos/preview/mixkit-people-walking-in-an-urban-setting-42634-large.mp4"
+            src="/hero-listhub.mp4"
             type="video/mp4"
           />
           Your browser does not support the video tag.

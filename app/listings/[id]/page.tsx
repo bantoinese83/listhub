@@ -22,6 +22,7 @@ import { getUserVerificationStatus } from "@/lib/verification/verification-servi
 import { getListingVerificationStatus } from "@/lib/verification/listing-verification"
 import VerificationBadge from "@/components/verification-badge"
 import ReportListingDialog from "@/components/report-listing-dialog"
+import { SimilarListings } from "@/components/similar-listings"
 
 interface ListingPageProps {
   params: {
@@ -208,6 +209,9 @@ export default async function ListingPage({ params }: ListingPageProps) {
             <div className="p-6 border rounded-lg">
               <SellerProfile user={listing.user} verificationLevel={userVerification.verificationLevel} />
             </div>
+
+            {/* Similar listings */}
+            <SimilarListings currentListing={listing} />
           </div>
 
           <div className="space-y-6">
