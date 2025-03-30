@@ -75,12 +75,16 @@ export default async function AboutPage() {
             </p>
           </div>
           <div className="relative h-64 rounded-lg overflow-hidden">
-            <Image
-              src="/placeholder.svg?height=400&width=600"
-              alt="People trading goods at a local market"
-              fill
-              className="object-cover"
-            />
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            >
+              <source src="/about-our-mission.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
           </div>
         </div>
       </section>

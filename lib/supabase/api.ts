@@ -345,15 +345,20 @@ export async function getSiteStats() {
       .from("locations")
       .select("*", { count: "exact", head: true })
 
-    if (listingsError || usersError || locationsError) {
-      console.error("Error fetching stats:", { listingsError, usersError, locationsError })
+    // Get total messages
+    const { count: messagesCount, error: messagesError } = await supabase
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+
+    if (listingsError || usersError || locationsError || messagesError) {
+      console.error("Error fetching stats:", { listingsError, usersError, locationsError, messagesError })
     }
 
     return {
       listings: listingsCount || 0,
       users: usersCount || 0,
       locations: locationsCount || 0,
-      messages: Math.floor((usersCount || 0) * 4.2), // An estimate based on users
+      messages: messagesCount || 0,
     }
   } catch (error) {
     console.error("Error connecting to Supabase:", error)

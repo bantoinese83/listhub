@@ -8,7 +8,9 @@ import PageTransition from "@/components/page-transition"
 import ScrollToTop from "@/components/scroll-to-top"
 import { constructMetadata } from "@/lib/metadata"
 import { Analytics } from "@/components/analytics"
+import { ChatbotWidget } from "@/components/chatbot-widget"
 import "./globals.css"
+import { cn } from "@/lib/utils"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,18 +26,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">
-              <PageTransition>{children}</PageTransition>
-            </main>
-            <Footer />
-          </div>
+      <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Analytics />
+          <Header />
+          <main className="flex-1">
+            <PageTransition>{children}</PageTransition>
+          </main>
+          <Footer />
+          <ChatbotWidget />
           <ScrollToTop />
           <Toaster />
-          <Analytics />
         </ThemeProvider>
       </body>
     </html>
