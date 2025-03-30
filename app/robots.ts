@@ -1,14 +1,37 @@
-import type { MetadataRoute } from "next"
-import { SITE_URL } from "@/lib/constants"
+import { MetadataRoute } from "next"
 
 export default function robots(): MetadataRoute.Robots {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://listhub.com"
+
   return {
     rules: {
       userAgent: "*",
-      allow: "/",
-      disallow: ["/dashboard/", "/api/"],
+      allow: [
+        "/",
+        "/categories/*",
+        "/listings/*",
+        "/help/*",
+        "/contact",
+        "/feedback",
+        "/report",
+        "/terms",
+        "/privacy",
+        "/cookies",
+      ],
+      disallow: [
+        "/api/*",
+        "/admin/*",
+        "/dashboard/*",
+        "/settings/*",
+        "/messages/*",
+        "/notifications/*",
+        "/auth/*",
+        "/_next/*",
+        "/static/*",
+        "/images/*",
+      ],
     },
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    sitemap: `${siteUrl}/sitemap.xml`,
   }
 }
 

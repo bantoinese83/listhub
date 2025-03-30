@@ -5,6 +5,7 @@ import { constructMetadata } from "@/lib/metadata"
 export const metadata = constructMetadata({
   title: "Page Not Found",
   description: "The page you are looking for does not exist.",
+  pathname: "/404",
   noIndex: true,
 })
 

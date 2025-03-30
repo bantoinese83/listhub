@@ -1,11 +1,11 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { HelpCircle, Shield, AlertTriangle, Scale, FileText, Users } from "lucide-react"
+import { HelpCircle, Shield, AlertTriangle, Scale, FileText, Users, MessageCircle, Mail } from "lucide-react"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export const metadata: Metadata = {
-  title: "Help Center | Marketplace",
-  description: "Get help with using our marketplace platform and find answers to common questions.",
+  title: "Help Center | ListHub",
+  description: "Get help with using ListHub, find answers to common questions, report issues, and contact our support team.",
 }
 
 export default function HelpPage() {
@@ -35,6 +35,18 @@ export default function HelpPage() {
       href: "/help/abuse",
     },
     {
+      title: "Contact Support",
+      description: "Get in touch with our support team for assistance",
+      icon: Mail,
+      href: "/help/contact",
+    },
+    {
+      title: "Send Feedback",
+      description: "Share your suggestions and help us improve ListHub",
+      icon: MessageCircle,
+      href: "/help/feedback",
+    },
+    {
       title: "Legal Information",
       description: "Terms of service, privacy policy, and other legal information",
       icon: Scale,
@@ -53,7 +65,7 @@ export default function HelpPage() {
       <div className="flex flex-col items-start gap-2 pb-8">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">Help Center</h1>
         <p className="text-lg text-muted-foreground">
-          Find answers, learn how to stay safe, and get support for using our marketplace
+          Find answers, get support, report issues, and help us improve ListHub
         </p>
       </div>
 
@@ -74,21 +86,21 @@ export default function HelpPage() {
       </div>
 
       <div className="mt-12 rounded-lg border bg-muted/50 p-6">
-        <h2 className="text-xl font-semibold mb-4">Need more help?</h2>
-        <p className="mb-4">If you can't find the information you're looking for, please contact our support team.</p>
+        <h2 className="text-xl font-semibold mb-4">Emergency Support</h2>
+        <p className="mb-4">For urgent issues or immediate assistance, please contact our emergency support line.</p>
         <div className="flex flex-col sm:flex-row gap-4">
-          <Link
-            href="/contact"
+          <a
+            href="tel:+1234567890"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
           >
-            Contact Support
-          </Link>
-          <Link
-            href="/help/faq"
+            Call Support
+          </a>
+          <a
+            href="mailto:support@listhub.com"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
           >
-            Browse FAQs
-          </Link>
+            Email Support
+          </a>
         </div>
       </div>
     </div>

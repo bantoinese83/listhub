@@ -1,60 +1,65 @@
-import type { Metadata } from "next"
-import { SITE_NAME, SITE_DESCRIPTION, SITE_URL, DEFAULT_KEYWORDS } from "./constants"
+import { Metadata } from "next"
 
-type MetadataProps = {
-  title?: string
-  description?: string
-  keywords?: string[]
+interface ConstructMetadataProps {
+  title: string
+  description: string
+  pathname: string
   image?: string
-  type?: "website" | "article" | "product"
-  pathname?: string
   noIndex?: boolean
+  alternates?: {
+    canonical?: string
+    languages?: Record<string, string>
+  }
 }
 
 export function constructMetadata({
   title,
-  description = SITE_DESCRIPTION,
-  keywords = DEFAULT_KEYWORDS,
-  image,
-  type = "website",
-  pathname = "",
+  description,
+  pathname,
+  image = "/og-image.png",
   noIndex = false,
-}: MetadataProps = {}): Metadata {
-  const fullTitle = title ? title + " | " + SITE_NAME : SITE_NAME
-  const url = `${SITE_URL}${pathname}`
-  const ogImageUrl = image
-    ? `${SITE_URL}/api/og?title=${encodeURIComponent(title || SITE_NAME)}&description=${encodeURIComponent(description)}&image=${encodeURIComponent(image)}&type=${type}`
-    : `${SITE_URL}/api/og?title=${encodeURIComponent(SITE_NAME)}&description=${encodeURIComponent(description)}&type=${type}`
+  alternates,
+}: ConstructMetadataProps): Metadata {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://listhub.com"
+  const fullUrl = `${siteUrl}${pathname}`
+  const canonicalUrl = alternates?.canonical || fullUrl
 
   return {
-    title: fullTitle,
+    title: {
+      default: title,
+      template: `%s | ${process.env.NEXT_PUBLIC_SITE_NAME || "ListHub"}`,
+    },
     description,
-    keywords,
-    metadataBase: new URL(SITE_URL),
+    metadataBase: new URL(siteUrl),
     alternates: {
-      canonical: url,
+      canonical: canonicalUrl,
+      languages: alternates?.languages || {
+        "en-US": fullUrl,
+      },
     },
     openGraph: {
-      title: fullTitle,
+      title,
       description,
-      url,
-      siteName: SITE_NAME,
+      url: fullUrl,
+      siteName: process.env.NEXT_PUBLIC_SITE_NAME || "ListHub",
       images: [
         {
-          url: ogImageUrl,
+          url: image,
           width: 1200,
           height: 630,
-          alt: title || SITE_NAME,
+          alt: title,
         },
       ],
       locale: "en_US",
-      type,
+      type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: fullTitle,
+      title,
       description,
-      images: [ogImageUrl],
+      images: [image],
+      creator: "@listhub",
+      site: "@listhub",
     },
     robots: {
       index: !noIndex,
@@ -62,8 +67,56 @@ export function constructMetadata({
       googleBot: {
         index: !noIndex,
         follow: !noIndex,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
       },
     },
+    verification: {
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+      yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
+      bing: process.env.NEXT_PUBLIC_BING_VERIFICATION,
+    },
+    category: "marketplace",
+    keywords: [
+      "marketplace",
+      "classifieds",
+      "buy and sell",
+      "local listings",
+      "community marketplace",
+      "online marketplace",
+    ],
+    authors: [{ name: "ListHub Team" }],
+    creator: "ListHub",
+    publisher: "ListHub",
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+    icons: {
+      icon: "/favicon.ico",
+      shortcut: "/favicon-16x16.png",
+      apple: "/apple-touch-icon.png",
+      other: [
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "32x32",
+          url: "/favicon-32x32.png",
+        },
+      ],
+    },
+    manifest: "/site.webmanifest",
+    viewport: {
+      width: "device-width",
+      initialScale: 1,
+      maximumScale: 1,
+    },
+    themeColor: [
+      { media: "(prefers-color-scheme: light)", color: "white" },
+      { media: "(prefers-color-scheme: dark)", color: "black" },
+    ],
   }
 }
 

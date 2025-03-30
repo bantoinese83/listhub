@@ -17,7 +17,20 @@ const inter = Inter({
   variable: "--font-inter",
 })
 
-export const metadata = constructMetadata()
+export const metadata = constructMetadata({
+  title: "ListHub - Your Local Marketplace",
+  description: "Buy and sell items in your local community. Find great deals on everything from furniture to electronics.",
+  pathname: "/",
+  image: "/og-image.png",
+})
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#000000",
+}
 
 export default function RootLayout({
   children,

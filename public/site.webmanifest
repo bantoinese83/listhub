@@ -1,0 +1,57 @@
+{
+  "name": "ListHub - Your Local Marketplace",
+  "short_name": "ListHub",
+  "description": "Buy and sell items in your local community",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["marketplace", "shopping", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "ListHub Homepage"
+    },
+    {
+      "src": "/screenshots/categories.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Browse Categories"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Post New Listing",
+      "short_name": "Post",
+      "description": "Create a new listing",
+      "url": "/listings/new",
+      "icons": [{ "src": "/icons/post.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Listings",
+      "short_name": "Listings",
+      "description": "View your listings",
+      "url": "/dashboard/listings",
+      "icons": [{ "src": "/icons/listings.png", "sizes": "192x192" }]
+    }
+  ]
+} 

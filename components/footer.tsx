@@ -64,42 +64,74 @@ export default function Footer() {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <h3 className="text-sm font-semibold">Categories</h3>
+          <h3 className="text-sm font-semibold">Marketplace</h3>
           <ul className="mt-2 space-y-2 text-sm">
             <li>
-              <Link
-                href="/categories/for-sale"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                For Sale
+              <Link href="/categories/marketplace" className="text-muted-foreground hover:text-foreground transition-colors">
+                All Items
               </Link>
             </li>
             <li>
-              <Link
-                href="/categories/housing"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Housing
+              <Link href="/categories/vehicles" className="text-muted-foreground hover:text-foreground transition-colors">
+                Vehicles
               </Link>
             </li>
             <li>
-              <Link href="/categories/jobs" className="text-muted-foreground hover:text-foreground transition-colors">
-                Jobs
+              <Link href="/categories/electronics" className="text-muted-foreground hover:text-foreground transition-colors">
+                Electronics
               </Link>
             </li>
             <li>
-              <Link
-                href="/categories/services"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Services
+              <Link href="/categories/home-garden" className="text-muted-foreground hover:text-foreground transition-colors">
+                Home & Garden
+              </Link>
+            </li>
+            <li>
+              <Link href="/categories/clothing-health-beauty" className="text-muted-foreground hover:text-foreground transition-colors">
+                Clothing & Beauty
+              </Link>
+            </li>
+            <li>
+              <Link href="/categories/hobbies-recreation" className="text-muted-foreground hover:text-foreground transition-colors">
+                Hobbies & Recreation
               </Link>
             </li>
           </ul>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <h3 className="text-sm font-semibold">Resources</h3>
+          <h3 className="text-sm font-semibold">Services & Community</h3>
+          <ul className="mt-2 space-y-2 text-sm">
+            <li>
+              <Link href="/categories/services" className="text-muted-foreground hover:text-foreground transition-colors">
+                Services
+              </Link>
+            </li>
+            <li>
+              <Link href="/categories/community" className="text-muted-foreground hover:text-foreground transition-colors">
+                Community
+              </Link>
+            </li>
+            <li>
+              <Link href="/categories/jobs-gigs" className="text-muted-foreground hover:text-foreground transition-colors">
+                Jobs & Gigs
+              </Link>
+            </li>
+            <li>
+              <Link href="/categories/housing" className="text-muted-foreground hover:text-foreground transition-colors">
+                Housing
+              </Link>
+            </li>
+            <li>
+              <Link href="/categories/discussions" className="text-muted-foreground hover:text-foreground transition-colors">
+                Discussions
+              </Link>
+            </li>
+          </ul>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <h3 className="text-sm font-semibold">Support</h3>
           <ul className="mt-2 space-y-2 text-sm">
             <li>
               <Link href="/help" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -107,47 +139,23 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/safety" className="text-muted-foreground hover:text-foreground transition-colors">
-                Safety Tips
+              <Link href="/help/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                Contact Support
               </Link>
             </li>
             <li>
-              <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
-                Terms of Service
+              <Link href="/help/feedback" className="text-muted-foreground hover:text-foreground transition-colors">
+                Send Feedback
               </Link>
             </li>
             <li>
-              <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
-                Privacy Policy
-              </Link>
-            </li>
-          </ul>
-        </motion.div>
-
-        <motion.div variants={itemVariants}>
-          <h3 className="text-sm font-semibold">Contact</h3>
-          <ul className="mt-2 space-y-2 text-sm">
-            <li>
-              <Link
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {CONTACT_EMAIL}
+              <Link href="/help/abuse" className="text-muted-foreground hover:text-foreground transition-colors">
+                Report Abuse
               </Link>
             </li>
             <li>
-              <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
-                Contact Us
-              </Link>
-            </li>
-            <li>
-              <Link href="/feedback" className="text-muted-foreground hover:text-foreground transition-colors">
-                Feedback
-              </Link>
-            </li>
-            <li>
-              <Link href="/report" className="text-muted-foreground hover:text-foreground transition-colors">
-                Report an Issue
+              <Link href="/help/legal" className="text-muted-foreground hover:text-foreground transition-colors">
+                Legal Information
               </Link>
             </li>
           </ul>

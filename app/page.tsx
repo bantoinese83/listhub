@@ -8,6 +8,14 @@ import VideoHero from "@/components/video-hero"
 import TrendingCategories from "@/components/trending-categories"
 import StatsCounter from "@/components/stats-counter"
 import CategoryGrid from "@/components/category-grid"
+import { constructMetadata } from "@/lib/metadata"
+
+export const metadata = constructMetadata({
+  title: "ListHub - Your Local Marketplace",
+  description: "Buy and sell items in your local community. Find great deals on everything from furniture to electronics.",
+  pathname: "/",
+  image: "/og-image.png",
+})
 
 export default async function Home() {
   // Fetch featured listings

@@ -41,7 +41,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "latest",
+    "@supabase/supabase-js": "^2.49.4",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -70,6 +70,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8",
+    "sharp": "^0.33.5",
     "tailwindcss": "^3.4.17",
     "ts-prune": "^0.10.3",
     "typescript": "^5"

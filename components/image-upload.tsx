@@ -4,7 +4,9 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Camera, Upload } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/use-auth"
 
 interface ImageUploadProps {
   currentImageUrl?: string | null
@@ -29,7 +31,12 @@ export function ImageUpload({
   const videoRef = useRef<HTMLVideoElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const router = useRouter()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { user, session, loading, signOut } = useAuth()
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -105,6 +112,24 @@ export function ImageUpload({
     if (!previewUrl) return
 
     try {
+      if (loading) {
+        console.log('Auth is still loading...')
+        return
+      }
+
+      if (!user || !session) {
+        console.log('No user or session found:', { user, session })
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to upload images.",
+          variant: "destructive",
+        })
+        router.push("/auth/signin")
+        return
+      }
+
+      console.log('Uploading image for user:', user.id)
+
       // Convert base64 to blob
       const response = await fetch(previewUrl)
       const blob = await response.blob()
@@ -113,18 +138,72 @@ export function ImageUpload({
       // Upload to Supabase Storage
       const fileExt = file.name.split('.').pop()
       const fileName = `${Math.random()}.${fileExt}`
-      const filePath = `listings/${fileName}`
+      
+      // For avatars, include the user's ID in the path
+      const filePath = aspectRatio === "square" 
+        ? `${user.id}/${fileName}`
+        : fileName
+
+      // Determine which bucket to use based on the aspect ratio
+      const bucketName = aspectRatio === "square" ? "avatars" : "listing-images"
+
+      console.log('Uploading to bucket:', bucketName, 'with path:', filePath)
 
       const { error: uploadError } = await supabase.storage
-        .from('listings')
+        .from(bucketName)
         .upload(filePath, file)
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error("Upload error:", uploadError)
+        if (uploadError.message.includes("Auth session missing")) {
+          console.log('Session missing, attempting to refresh...')
+          const { data: { session: newSession }, error: refreshError } = await supabase.auth.getSession()
+          
+          if (refreshError || !newSession) {
+            console.error('Failed to refresh session:', refreshError)
+            await signOut()
+            router.push("/auth/signin")
+            return
+          }
+          
+          // Retry upload with new session
+          const { error: retryError } = await supabase.storage
+            .from(bucketName)
+            .upload(filePath, file)
+            
+          if (retryError) throw retryError
+        } else {
+          throw uploadError
+        }
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('listings')
+        .from(bucketName)
         .getPublicUrl(filePath)
+
+      // Update the user's profile with the new avatar URL
+      if (aspectRatio === "square") {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ avatar_url: publicUrl })
+          .eq('id', user.id)
+
+        if (updateError) {
+          console.error('Error updating profile:', updateError)
+          throw updateError
+        }
+
+        // Update the user's metadata with the new avatar URL
+        const { error: updateUserError } = await supabase.auth.updateUser({
+          data: { avatar_url: publicUrl }
+        })
+
+        if (updateUserError) {
+          console.error('Error updating user metadata:', updateUserError)
+          throw updateUserError
+        }
+      }
 
       onImageUpdate(publicUrl)
       setPreviewUrl(null)
@@ -133,11 +212,14 @@ export function ImageUpload({
         title: "Success",
         description: "Image uploaded successfully",
       })
+
+      // Refresh the page to show the new avatar
+      router.refresh()
     } catch (error) {
       console.error("Error uploading image:", error)
       toast({
         title: "Error",
-        description: "Failed to upload image. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to upload image. Please try again.",
         variant: "destructive",
       })
     }

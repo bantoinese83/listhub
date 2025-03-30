@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator"
 import { Mail, Calendar } from "lucide-react"
 import { ProfileEditDialog } from "@/components/profile-edit-dialog"
 import { AvatarUpload } from "@/components/avatar-upload"
+import { useState } from "react"
 
 interface ProfileSectionProps {
   profile: {
@@ -17,7 +18,16 @@ interface ProfileSectionProps {
   userEmail: string
 }
 
-export function ProfileSection({ profile, userEmail }: ProfileSectionProps) {
+export function ProfileSection({ profile: initialProfile, userEmail }: ProfileSectionProps) {
+  const [profile, setProfile] = useState(initialProfile)
+
+  const handleAvatarUpdate = (newAvatarUrl: string) => {
+    setProfile(prev => ({
+      ...prev,
+      avatar_url: newAvatarUrl
+    }))
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -32,10 +42,7 @@ export function ProfileSection({ profile, userEmail }: ProfileSectionProps) {
           </Avatar>
           <AvatarUpload
             currentAvatarUrl={profile.avatar_url}
-            onAvatarUpdate={(url) => {
-              // Update the profile with the new avatar URL
-              window.location.reload()
-            }}
+            onAvatarUpdate={handleAvatarUpdate}
           />
           <div className="text-center">
             <h3 className="text-lg font-semibold">{profile.full_name}</h3>
@@ -53,7 +60,7 @@ export function ProfileSection({ profile, userEmail }: ProfileSectionProps) {
             <span className="text-sm">Member since {new Date(profile.created_at).toLocaleDateString()}</span>
           </div>
         </div>
-        <ProfileEditDialog profile={profile} onProfileUpdate={() => window.location.reload()} />
+        <ProfileEditDialog profile={profile} onProfileUpdate={() => setProfile(prev => ({ ...prev }))} />
       </CardContent>
     </Card>
   )
