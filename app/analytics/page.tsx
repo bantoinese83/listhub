@@ -1,6 +1,10 @@
 import { Metadata } from 'next'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { AnalyticsDashboard } from '@/components/analytics-dashboard'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart'
+import { Input } from '@/components/ui/input'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import { useState } from 'react'
 
 export const metadata: Metadata = {
   title: 'Analytics | ListHub',
@@ -24,6 +28,22 @@ export default async function AnalyticsPage() {
     )
   }
 
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filter, setFilter] = useState('all')
+  const [sort, setSort] = useState('date')
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value)
+  }
+
+  const handleFilterChange = (value) => {
+    setFilter(value)
+  }
+
+  const handleSortChange = (value) => {
+    setSort(value)
+  }
+
   return (
     <div className="container py-8">
       <div className="space-y-6">
@@ -34,8 +54,37 @@ export default async function AnalyticsPage() {
           </p>
         </div>
 
-        <AnalyticsDashboard userId={user.id} />
+        <div className="flex items-center gap-4">
+          <Input
+            placeholder="Search listings..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <Select value={filter} onValueChange={handleFilterChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="views">Views</SelectItem>
+              <SelectItem value="messages">Messages</SelectItem>
+              <SelectItem value="favorites">Favorites</SelectItem>
+              <SelectItem value="shares">Shares</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sort} onValueChange={handleSortChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date">Date</SelectItem>
+              <SelectItem value="popularity">Popularity</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <AnalyticsDashboard userId={user.id} searchTerm={searchTerm} filter={filter} sort={sort} />
       </div>
     </div>
   )
-} 
+}

@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BarChart3, Eye, MessageSquare, Heart, Share2 } from 'lucide-react'
+import { BarChart3, Eye, MessageSquare, Heart, Share2, LineChart, PieChart, AlertCircle, TrendingUp } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { formatDistanceToNow } from 'date-fns'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 
 interface AnalyticsEvent {
   id: string
@@ -54,6 +56,13 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps) {
     return <div>Loading analytics...</div>
   }
 
+  const chartData = [
+    { name: 'Views', value: analytics.totalViews },
+    { name: 'Messages', value: analytics.totalMessages },
+    { name: 'Favorites', value: analytics.totalFavorites },
+    { name: 'Shares', value: analytics.totalShares },
+  ]
+
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
@@ -95,6 +104,58 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analytics.totalShares}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Interactive Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Bar Chart</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}}>
+              <RechartsPrimitive.BarChart data={chartData}>
+                <RechartsPrimitive.XAxis dataKey="name" />
+                <RechartsPrimitive.YAxis />
+                <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
+                <RechartsPrimitive.Bar dataKey="value" fill="#8884d8" />
+              </RechartsPrimitive.BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Line Chart</CardTitle>
+            <LineChart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}}>
+              <RechartsPrimitive.LineChart data={chartData}>
+                <RechartsPrimitive.XAxis dataKey="name" />
+                <RechartsPrimitive.YAxis />
+                <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
+                <RechartsPrimitive.Line type="monotone" dataKey="value" stroke="#8884d8" />
+              </RechartsPrimitive.LineChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pie Chart</CardTitle>
+            <PieChart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}}>
+              <RechartsPrimitive.PieChart>
+                <RechartsPrimitive.Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} fill="#8884d8" label />
+                <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
+              </RechartsPrimitive.PieChart>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
@@ -143,6 +204,38 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps) {
           </ScrollArea>
         </CardContent>
       </Card>
+
+      {/* Actionable Insights */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Actionable Insights
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-start gap-4">
+              <AlertCircle className="h-5 w-5 text-yellow-600" />
+              <div>
+                <h4 className="font-medium">Increase Listing Views</h4>
+                <p className="text-sm text-muted-foreground">
+                  Consider updating your listing title and description to include more relevant keywords.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <AlertCircle className="h-5 w-5 text-yellow-600" />
+              <div>
+                <h4 className="font-medium">Boost Engagement</h4>
+                <p className="text-sm text-muted-foreground">
+                  Respond to messages promptly to increase user engagement and satisfaction.
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
-} 
+}
