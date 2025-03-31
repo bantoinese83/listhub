@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { getListings, getSiteStats, getCategories } from "@/lib/supabase/api"
 import dynamic from 'next/dynamic'
 import { constructMetadata } from "@/lib/metadata"
-import { SubscriptionSection } from "@/components/subscription/subscription-section"
+import { SubscriptionSection } from "./components/subscription/subscription-section"
 
 // Dynamically import heavy components
 const CategoryMarquee = dynamic(() => import("@/components/category-marquee"), {
