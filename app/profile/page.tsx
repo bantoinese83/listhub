@@ -2,10 +2,8 @@ import { Metadata } from "next"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/supabase/api"
 import { constructMetadata } from "@/lib/metadata"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { ProfileSection } from "@/components/profile-section"
-import { AccountSettingsDialog } from "@/components/account-settings-dialog"
+import ProfileClient from "@/app/components/profile/ProfileClient"
+import { getProfileStats } from "@/lib/services/profile-stats-service"
 
 export const metadata: Metadata = constructMetadata({
   title: "Profile",
@@ -45,44 +43,26 @@ export default async function ProfilePage() {
     )
   }
 
+  const stats = await getProfileStats(user.id)
+
   return (
     <div className="container py-8">
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold">Profile</h1>
+          <h1 className="text-3xl font-bold">Profile</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your profile settings and preferences.
+            Manage your profile, settings, and view your statistics.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <ProfileSection profile={profile} userEmail={user.email || ""} />
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>Manage your account preferences and security</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium">Email Notifications</h4>
-                  <p className="text-sm text-muted-foreground">Receive updates about your listings and messages</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium">Two-Factor Authentication</h4>
-                  <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium">Delete Account</h4>
-                  <p className="text-sm text-muted-foreground">Permanently delete your account and all data</p>
-                </div>
-              </div>
-              <Separator />
-              <AccountSettingsDialog userId={user.id} />
-            </CardContent>
-          </Card>
-        </div>
+        <ProfileClient
+          user={{
+            id: user.id,
+            email: user.email || null
+          }}
+          profile={profile}
+          stats={stats}
+        />
       </div>
     </div>
   )
