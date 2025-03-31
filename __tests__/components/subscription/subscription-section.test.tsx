@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { SubscriptionSection } from '@/components/subscription/subscription-section'
+import { SubscriptionSection } from '@/app/components/subscription/subscription-section'
 
 describe('SubscriptionSection', () => {
   it('renders all subscription tiers', () => {
