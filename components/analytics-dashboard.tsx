@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BarChart3, Eye, MessageSquare, Heart, Share2, LineChart, PieChart, AlertCircle, TrendingUp } from 'lucide-react'
+import { BarChart3, Eye, MessageSquare, Heart, Share2, LineChart as LineChartIcon, PieChart as PieChartIcon, AlertCircle, TrendingUp } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { formatDistanceToNow } from 'date-fns'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts'
 
 interface AnalyticsEvent {
   id: string
@@ -24,9 +25,12 @@ interface AnalyticsEvent {
 
 interface AnalyticsDashboardProps {
   userId: string
+  searchTerm: string
+  filter: string
+  sort: string
 }
 
-export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps) {
+export function AnalyticsDashboard({ userId, searchTerm, filter, sort }: AnalyticsDashboardProps) {
   const [analytics, setAnalytics] = useState<{
     totalViews: number
     totalMessages: number
@@ -117,12 +121,12 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps) {
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}}>
-              <RechartsPrimitive.BarChart data={chartData}>
-                <RechartsPrimitive.XAxis dataKey="name" />
-                <RechartsPrimitive.YAxis />
-                <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
-                <RechartsPrimitive.Bar dataKey="value" fill="#8884d8" />
-              </RechartsPrimitive.BarChart>
+              <BarChart data={chartData} width={400} height={300}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <RechartsTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="value" fill="#8884d8" />
+              </BarChart>
             </ChartContainer>
           </CardContent>
         </Card>
@@ -130,16 +134,16 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Line Chart</CardTitle>
-            <LineChart className="h-4 w-4 text-muted-foreground" />
+            <LineChartIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}}>
-              <RechartsPrimitive.LineChart data={chartData}>
-                <RechartsPrimitive.XAxis dataKey="name" />
-                <RechartsPrimitive.YAxis />
-                <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
-                <RechartsPrimitive.Line type="monotone" dataKey="value" stroke="#8884d8" />
-              </RechartsPrimitive.LineChart>
+              <LineChart data={chartData} width={400} height={300}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <RechartsTooltip content={<ChartTooltipContent />} />
+                <Line type="monotone" dataKey="value" stroke="#8884d8" />
+              </LineChart>
             </ChartContainer>
           </CardContent>
         </Card>
@@ -147,14 +151,14 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pie Chart</CardTitle>
-            <PieChart className="h-4 w-4 text-muted-foreground" />
+            <PieChartIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}}>
-              <RechartsPrimitive.PieChart>
-                <RechartsPrimitive.Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} fill="#8884d8" label />
-                <RechartsPrimitive.Tooltip content={<ChartTooltipContent />} />
-              </RechartsPrimitive.PieChart>
+              <PieChart width={400} height={300}>
+                <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} fill="#8884d8" label />
+                <RechartsTooltip content={<ChartTooltipContent />} />
+              </PieChart>
             </ChartContainer>
           </CardContent>
         </Card>
