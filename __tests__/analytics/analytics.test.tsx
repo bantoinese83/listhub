@@ -46,6 +46,45 @@ describe('Analytics', () => {
         expect(onExport).toHaveBeenCalledWith(mockAnalytics)
       })
     })
+
+    it('should handle search functionality', async () => {
+      const onSearch = jest.fn()
+      render(<AnalyticsDashboard analytics={mockAnalytics} onSearch={onSearch} />)
+
+      fireEvent.change(screen.getByPlaceholderText(/search listings/i), {
+        target: { value: 'test' },
+      })
+
+      await waitFor(() => {
+        expect(onSearch).toHaveBeenCalledWith('test')
+      })
+    })
+
+    it('should handle filter functionality', async () => {
+      const onFilter = jest.fn()
+      render(<AnalyticsDashboard analytics={mockAnalytics} onFilter={onFilter} />)
+
+      fireEvent.change(screen.getByLabelText(/filter by/i), {
+        target: { value: 'views' },
+      })
+
+      await waitFor(() => {
+        expect(onFilter).toHaveBeenCalledWith('views')
+      })
+    })
+
+    it('should handle sort functionality', async () => {
+      const onSort = jest.fn()
+      render(<AnalyticsDashboard analytics={mockAnalytics} onSort={onSort} />)
+
+      fireEvent.change(screen.getByLabelText(/sort by/i), {
+        target: { value: 'date' },
+      })
+
+      await waitFor(() => {
+        expect(onSort).toHaveBeenCalledWith('date')
+      })
+    })
   })
 
   describe('AnalyticsChart', () => {
@@ -84,6 +123,17 @@ describe('Analytics', () => {
 
       await waitFor(() => {
         expect(onChartTypeChange).toHaveBeenCalledWith('bar')
+      })
+    })
+
+    it('should display tooltips on hover', async () => {
+      render(<AnalyticsChart data={mockData} />)
+
+      fireEvent.mouseOver(screen.getByTestId('chart-point-2024-01-01'))
+
+      await waitFor(() => {
+        expect(screen.getByText(/100 views/i)).toBeInTheDocument()
+        expect(screen.getByText(/5 contacts/i)).toBeInTheDocument()
       })
     })
   })
@@ -138,5 +188,26 @@ describe('Analytics', () => {
         expect(onFilter).toHaveBeenCalledWith('views')
       })
     })
+
+    it('should display actionable insights', () => {
+      render(<AnalyticsMetrics metrics={mockMetrics} />)
+
+      expect(screen.getByText(/increase listing views/i)).toBeInTheDocument()
+      expect(screen.getByText(/boost engagement/i)).toBeInTheDocument()
+    })
+
+    it('should display benchmarks and comparisons', () => {
+      render(<AnalyticsMetrics metrics={mockMetrics} />)
+
+      expect(screen.getByText(/your listings are performing better/i)).toBeInTheDocument()
+      expect(screen.getByText(/compared to similar listings/i)).toBeInTheDocument()
+    })
+
+    it('should display alerts and notifications', () => {
+      render(<AnalyticsMetrics metrics={mockMetrics} />)
+
+      expect(screen.getByText(/significant changes in analytics data/i)).toBeInTheDocument()
+      expect(screen.getByText(/sudden drop in views/i)).toBeInTheDocument()
+    })
   })
-}) 
+})
