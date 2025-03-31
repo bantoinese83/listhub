@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 // Singleton to track loading state
 let isLoading = false
 let loadPromise: Promise<void> | null = null
+let scriptElement: HTMLScriptElement | null = null
 
 export function useGoogleMaps() {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -30,13 +31,36 @@ export function useGoogleMaps() {
     // Start loading
     isLoading = true
     loadPromise = new Promise((resolve, reject) => {
-      const script = document.createElement("script")
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places,geometry&callback=initGoogleMaps`
-      script.async = true
-      script.defer = true
+      // Check if script is already in the document
+      scriptElement = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]') as HTMLScriptElement
+      
+      if (scriptElement) {
+        // If script exists but not loaded yet, wait for it
+        if (!window.google?.maps) {
+          scriptElement.onload = () => {
+            if (window.google?.maps) {
+              setIsLoaded(true)
+              resolve()
+            } else {
+              const error = new Error("Google Maps failed to load")
+              setError(error)
+              reject(error)
+            }
+          }
+        } else {
+          setIsLoaded(true)
+          resolve()
+        }
+        return
+      }
 
-      // Define the callback function that Google Maps will call when loaded
-      window.initGoogleMaps = () => {
+      // Create and load the script
+      scriptElement = document.createElement("script")
+      scriptElement.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places,geometry`
+      scriptElement.async = true
+      scriptElement.defer = true
+
+      scriptElement.onload = () => {
         if (window.google?.maps) {
           setIsLoaded(true)
           resolve()
@@ -47,25 +71,21 @@ export function useGoogleMaps() {
         }
       }
 
-      script.onerror = () => {
+      scriptElement.onerror = () => {
         const error = new Error("Failed to load Google Maps script")
         setError(error)
         reject(error)
       }
 
-      document.head.appendChild(script)
+      document.head.appendChild(scriptElement)
     })
 
     // Cleanup function
     return () => {
       // Only remove the script if we were the ones who added it
-      const script = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]') as HTMLScriptElement
-      if (script && document.head.contains(script)) {
-        document.head.removeChild(script)
-      }
-      // Don't delete the callback if other instances might need it
-      if (window.initGoogleMaps === script?.onload) {
-        window.initGoogleMaps = () => {}
+      if (scriptElement && document.head.contains(scriptElement)) {
+        document.head.removeChild(scriptElement)
+        scriptElement = null
       }
     }
   }, [])
@@ -80,7 +100,6 @@ export function useGoogleMaps() {
 // Add type declaration for the callback
 declare global {
   interface Window {
-    initGoogleMaps: () => void
     google?: {
       maps: any
     }

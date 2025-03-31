@@ -11,7 +11,7 @@ interface LocationMapPreviewProps {
   className?: string
 }
 
-export default function LocationMapPreview({
+function LocationMapPreviewContent({
   latitude,
   longitude,
   locationName,
@@ -44,7 +44,7 @@ export default function LocationMapPreview({
       markerRef.current = marker
     }
 
-    if (window.google) {
+    if (window.google?.maps) {
       initMap()
     }
   }, [latitude, longitude, locationName])
@@ -55,5 +55,13 @@ export default function LocationMapPreview({
         <div ref={mapRef} className="w-full h-[200px]" />
       </CardContent>
     </Card>
+  )
+}
+
+export default function LocationMapPreview(props: LocationMapPreviewProps) {
+  return (
+    <GoogleMapsLoader>
+      <LocationMapPreviewContent {...props} />
+    </GoogleMapsLoader>
   )
 } 

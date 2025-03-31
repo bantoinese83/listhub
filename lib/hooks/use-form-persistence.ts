@@ -1,39 +1,31 @@
 "use client"
 
 import { useEffect } from "react"
-import { UseFormReturn, FieldValues, Path, PathValue } from "react-hook-form"
+import { UseFormReturn } from "react-hook-form"
 import { useBeforeUnload } from "@/hooks/use-before-unload"
 
-export function useFormPersistence<T extends FieldValues>(
-  key: string,
-  form: UseFormReturn<T>
-) {
-  const { watch, setValue } = form
-  const values = watch()
-  const isDirty = Object.keys(form.formState.dirtyFields).length > 0
-
-  // Load saved form data on mount
+export function useFormPersistence(form: UseFormReturn<any>, key: string) {
   useEffect(() => {
+    // Load saved form data
     const savedData = localStorage.getItem(key)
     if (savedData) {
       try {
-        const parsedData = JSON.parse(savedData) as T
-        Object.keys(parsedData).forEach((field) => {
-          const path = field as Path<T>
-          setValue(path, parsedData[field] as PathValue<T, Path<T>>)
-        })
+        const parsedData = JSON.parse(savedData)
+        form.reset(parsedData)
       } catch (error) {
         console.error("Error loading saved form data:", error)
       }
     }
-  }, [key, setValue])
 
-  // Save form data on change
-  useEffect(() => {
-    if (isDirty) {
-      localStorage.setItem(key, JSON.stringify(values))
-    }
-  }, [key, values, isDirty])
+    // Save form data on change
+    const subscription = form.watch((value) => {
+      localStorage.setItem(key, JSON.stringify(value))
+    })
+
+    return () => subscription.unsubscribe()
+  }, [form, key])
+
+  const isDirty = Object.keys(form.formState.dirtyFields).length > 0
 
   // Handle unsaved changes warning
   useBeforeUnload(

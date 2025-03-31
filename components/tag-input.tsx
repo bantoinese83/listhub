@@ -28,6 +28,9 @@ export default function TagInput({
   const [inputValue, setInputValue] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Ensure value is always an array
+  const tags = Array.isArray(value) ? value : []
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value)
   }
@@ -42,8 +45,8 @@ export default function TagInput({
     }
 
     // Remove last tag on Backspace if input is empty
-    if (e.key === "Backspace" && !inputValue && value.length > 0) {
-      removeTag(value.length - 1)
+    if (e.key === "Backspace" && !inputValue && tags.length > 0) {
+      removeTag(tags.length - 1)
     }
   }
 
@@ -57,18 +60,18 @@ export default function TagInput({
     if (!normalizedTag) return
 
     // Don't add if already exists or max tags reached
-    if (value.includes(normalizedTag) || value.length >= maxTags) {
+    if (tags.includes(normalizedTag) || tags.length >= maxTags) {
       setInputValue("")
       return
     }
 
-    onChange([...value, normalizedTag])
+    onChange([...tags, normalizedTag])
     setInputValue("")
   }
 
   const removeTag = (index: number) => {
     if (disabled) return
-    const newTags = [...value]
+    const newTags = [...tags]
     newTags.splice(index, 1)
     onChange(newTags)
   }
@@ -86,7 +89,7 @@ export default function TagInput({
       )}
       onClick={handleContainerClick}
     >
-      {value.map((tag, index) => (
+      {tags.map((tag, index) => (
         <Badge key={`${tag}-${index}`} variant="secondary" className="flex items-center gap-1 px-2 py-1 text-xs">
           {tag}
           {!disabled && (
@@ -104,8 +107,8 @@ export default function TagInput({
         value={inputValue}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        placeholder={value.length === 0 ? placeholder : ""}
-        disabled={disabled || value.length >= maxTags}
+        placeholder={tags.length === 0 ? placeholder : ""}
+        disabled={disabled || tags.length >= maxTags}
         className="flex-1 border-0 p-0 text-sm focus-visible:ring-0 min-w-[120px]"
       />
     </div>

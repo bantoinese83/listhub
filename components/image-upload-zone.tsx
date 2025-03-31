@@ -2,8 +2,7 @@
 
 import { useCallback, useState } from "react"
 import { useDropzone } from "react-dropzone"
-import { Upload, X, Image as ImageIcon } from "lucide-react"
-import Image from "next/image"
+import { Loader2, Upload, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
@@ -16,7 +15,8 @@ const ACCEPTED_FILE_TYPES = {
 }
 
 interface ImageUploadZoneProps {
-  onFilesSelected: (files: File[]) => void
+  value?: File[]
+  onChange?: (files: File[]) => void
   disabled?: boolean
   error?: string | null
   progress?: number
@@ -24,18 +24,21 @@ interface ImageUploadZoneProps {
 }
 
 export default function ImageUploadZone({
-  onFilesSelected,
+  value = [],
+  onChange,
   disabled = false,
   error,
   progress = 0,
-  maxFiles = 5,
+  maxFiles = 10,
 }: ImageUploadZoneProps) {
+  const [isUploading, setIsUploading] = useState(false)
   const [previews, setPreviews] = useState<string[]>([])
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const { toast } = useToast()
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
+      if (disabled) return
+
       // Validate file count
       if (previews.length + acceptedFiles.length > maxFiles) {
         toast({
@@ -86,25 +89,25 @@ export default function ImageUploadZone({
       const newPreviews = validResults.map((result) => result.previewUrl)
       
       setPreviews([...previews, ...newPreviews])
-      setSelectedFiles([...selectedFiles, ...newFiles])
-      onFilesSelected([...selectedFiles, ...newFiles])
+      const newFilesArray = [...value, ...newFiles].slice(0, maxFiles)
+      onChange?.(newFilesArray)
     },
-    [maxFiles, onFilesSelected, previews, selectedFiles, toast]
+    [maxFiles, onChange, previews, value, toast]
   )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: ACCEPTED_FILE_TYPES,
-    disabled,
+    accept: {
+      "image/*": [".png", ".jpg", ".jpeg", ".gif"],
+    },
+    disabled: disabled || value.length >= maxFiles,
+    maxFiles: maxFiles - value.length,
   })
 
-  const removeImage = (index: number) => {
-    URL.revokeObjectURL(previews[index])
-    const newPreviews = previews.filter((_, i) => i !== index)
-    const newFiles = selectedFiles.filter((_, i) => i !== index)
-    setPreviews(newPreviews)
-    setSelectedFiles(newFiles)
-    onFilesSelected(newFiles)
+  const removeFile = (index: number) => {
+    if (disabled) return
+    const newFiles = value.filter((_, i) => i !== index)
+    onChange?.(newFiles)
   }
 
   return (
@@ -125,7 +128,7 @@ export default function ImageUploadZone({
             : "Drag and drop images here, or click to select files"}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Supported formats: JPG, PNG, WebP (max 5MB)
+          {value.length}/{maxFiles} images
         </p>
       </div>
 
@@ -150,28 +153,24 @@ export default function ImageUploadZone({
         </div>
       )}
 
-      {previews.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {previews.map((preview, index) => (
-            <div key={preview} className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden border">
-                <Image
-                  src={preview}
-                  alt={`Preview ${index + 1}`}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => removeImage(index)}
-                disabled={disabled}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+      {value.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {value.map((file, index) => (
+            <div key={index} className="relative group">
+              <img
+                src={URL.createObjectURL(file)}
+                alt={`Upload ${index + 1}`}
+                className="w-full h-32 object-cover rounded-lg"
+              />
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={() => removeFile(index)}
+                  className="absolute top-2 right-2 p-1 rounded-full bg-background/80 text-foreground/80 hover:bg-background hover:text-foreground transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
           ))}
         </div>

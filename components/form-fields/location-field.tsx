@@ -122,7 +122,12 @@ export default function LocationField({ control, setValue, disabled = false }: L
                 )}
               </Button>
             </div>
-            {field.value.latitude !== 0 && field.value.longitude !== 0 && (
+            {field.value?.latitude && 
+             field.value?.longitude && 
+             typeof field.value.latitude === 'number' && 
+             typeof field.value.longitude === 'number' && 
+             !isNaN(field.value.latitude) && 
+             !isNaN(field.value.longitude) && (
               <LocationMapPreview
                 latitude={field.value.latitude}
                 longitude={field.value.longitude}

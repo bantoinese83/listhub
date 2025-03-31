@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { getListings, getSiteStats, getCategories } from "@/lib/supabase/api"
 import dynamic from 'next/dynamic'
 import { constructMetadata } from "@/lib/metadata"
+import { SubscriptionSection } from "@/components/subscription/subscription-section"
 
 // Dynamically import heavy components
 const CategoryMarquee = dynamic(() => import("@/components/category-marquee"), {
@@ -161,6 +162,27 @@ export default async function Home() {
                 </p>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Subscription Section */}
+      <SubscriptionSection />
+
+      {/* CTA Section */}
+      <section className="py-20 bg-primary/5">
+        <div className="container px-4 md:px-6">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight mb-4">Ready to Get Started?</h2>
+            <p className="text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+              Join thousands of users who trust ListHub for their listing needs.
+            </p>
+            <a
+              href="/auth/signup"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
+            >
+              Create Your Account
+            </a>
           </div>
         </div>
       </section>

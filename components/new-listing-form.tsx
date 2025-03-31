@@ -11,14 +11,17 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/lib/supabase/client"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import ImageUploadZone from "@/components/image-upload-zone"
 import TagInput from "@/components/tag-input"
 import LocationField from "@/components/form-fields/location-field"
+import VehicleFields from "@/components/form-fields/vehicle-fields"
+import HousingFields from "@/components/form-fields/housing-fields"
+import JobFields from "@/components/form-fields/job-fields"
+import ServiceFields from "@/components/form-fields/service-fields"
 import type { Category, Location } from "@/lib/supabase/schema"
-import { formSchema, type FormValues, defaultValues } from "@/lib/types/form"
+import { getCategorySchema, getCategoryDefaultValues } from "@/lib/types/category-forms"
 import { useFormPersistence } from "@/lib/hooks/use-form-persistence"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
@@ -37,42 +40,94 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
   const [tags, setTags] = useState<string[]>([])
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClient()
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues,
+  // Get the selected category's slug
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>("")
+
+  // Get the appropriate schema and default values based on the selected category
+  const schema = getCategorySchema(selectedCategorySlug)
+  const defaultValues = getCategoryDefaultValues(selectedCategorySlug)
+
+  const form = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      ...defaultValues,
+      tags: [],
+    },
   })
 
-  useFormPersistence("new-listing-form", form)
+  // Persist form data
+  useFormPersistence(form, "new-listing-form")
 
-  const onSubmit = async (data: FormValues) => {
-    if (images.length === 0) {
-      setUploadError("Please upload at least one image")
-      return
+  // Handle category change
+  const handleCategoryChange = (categoryId: string) => {
+    const category = categories.find((c) => c.id === categoryId)
+    if (!category) return
+
+    setSelectedCategorySlug(category.slug)
+    const newDefaultValues = getCategoryDefaultValues(category.slug)
+    
+    // Reset form with new default values while preserving category_id and tags
+    form.reset({
+      ...newDefaultValues,
+      category_id: categoryId,
+      tags: form.getValues("tags") || [],
+    })
+  }
+
+  // Render category-specific fields
+  const renderCategoryFields = () => {
+    if (!selectedCategorySlug) return null
+
+    if (selectedCategorySlug.includes("vehicles")) {
+      return (
+        <Card>
+          <CardContent className="pt-6">
+            <VehicleFields control={form.control} />
+          </CardContent>
+        </Card>
+      )
     }
 
-    setIsSubmitting(true)
-    setUploadProgress(0)
-    setUploadError(null)
+    if (selectedCategorySlug.includes("housing") || selectedCategorySlug.includes("rentals")) {
+      return (
+        <Card>
+          <CardContent className="pt-6">
+            <HousingFields control={form.control} />
+          </CardContent>
+        </Card>
+      )
+    }
 
+    if (selectedCategorySlug.includes("jobs") || selectedCategorySlug.includes("gigs")) {
+      return (
+        <Card>
+          <CardContent className="pt-6">
+            <JobFields control={form.control} />
+          </CardContent>
+        </Card>
+      )
+    }
+
+    if (selectedCategorySlug.includes("services")) {
+      return (
+        <Card>
+          <CardContent className="pt-6">
+            <ServiceFields control={form.control} />
+          </CardContent>
+        </Card>
+      )
+    }
+
+    return null
+  }
+
+  const onSubmit = async (data: any) => {
     try {
-      const supabase = createClient()
-      
-      // First, create or get the location
-      const { data: location, error: locationError } = await supabase
-        .from("locations")
-        .upsert({
-          name: data.location.name,
-          state: data.location.state,
-          latitude: data.location.latitude,
-          longitude: data.location.longitude,
-        })
-        .select()
-        .single()
+      setIsSubmitting(true)
 
-      if (locationError) throw locationError
-
-      // Create the listing
+      // 1. Create the base listing
       const { data: listing, error: listingError } = await supabase
         .from("listings")
         .insert({
@@ -81,55 +136,146 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
           price: data.price,
           category_id: data.category_id,
           user_id: userId,
-          location_id: location.id,
+          location_id: data.location.id,
           contact_info: data.contact_info,
-          status: "active",
-          tags: data.tags,
+          status: "pending",
+          views: 0,
+          is_featured: false,
+          tags: data.tags || [],
         })
         .select()
         .single()
 
       if (listingError) throw listingError
 
-      // Upload images with progress tracking
-      for (let i = 0; i < images.length; i++) {
-        const file = images[i]
-        const fileExt = file.name.split(".").pop()
-        const fileName = `${listing.id}/${i}-${Math.random().toString(36).substring(2)}.${fileExt}`
-        const filePath = `listings/${fileName}`
+      // 2. Create listing details based on category
+      const listingDetails: any = {
+        listing_id: listing.id,
+      }
 
-        const { error: uploadError } = await supabase.storage.from("listing-images").upload(filePath, file)
+      // Add category-specific fields
+      if (selectedCategorySlug?.includes("vehicles")) {
+        listingDetails.make = data.make
+        listingDetails.model = data.model
+        listingDetails.year = data.year
+        listingDetails.mileage = data.mileage
+        listingDetails.condition = data.condition
+        listingDetails.transmission = data.transmission
+        listingDetails.fuel_type = data.fuel_type
+        listingDetails.color = data.color
+        listingDetails.vin = data.vin
+      } else if (selectedCategorySlug?.includes("housing") || selectedCategorySlug?.includes("rentals")) {
+        listingDetails.property_type = data.property_type
+        listingDetails.bedrooms = data.bedrooms
+        listingDetails.bathrooms = data.bathrooms
+        listingDetails.square_feet = data.square_feet
+        listingDetails.furnished = data.furnished
+        listingDetails.available_date = data.available_date
+        listingDetails.lease_term = data.lease_term
+        listingDetails.amenities = data.amenities
+      } else if (selectedCategorySlug?.includes("jobs") || selectedCategorySlug?.includes("gigs")) {
+        listingDetails.employment_type = data.employment_type
+        listingDetails.experience_level = data.experience_level
+        listingDetails.salary_range = data.salary_range
+        listingDetails.remote_work = data.remote_work
+        listingDetails.required_skills = data.required_skills
+        listingDetails.benefits = data.benefits
+      } else if (selectedCategorySlug?.includes("services")) {
+        listingDetails.service_type = data.service_type
+        listingDetails.availability = data.availability
+        listingDetails.service_area = data.service_area
+        listingDetails.pricing_type = data.pricing_type
+        listingDetails.experience_years = data.experience_years
+        listingDetails.certifications = data.certifications
+      }
 
-        if (uploadError) throw uploadError
+      const { error: detailsError } = await supabase
+        .from("listing_details")
+        .insert(listingDetails)
 
-        const { data: publicURL } = supabase.storage.from("listing-images").getPublicUrl(filePath)
+      if (detailsError) throw detailsError
 
-        // Save image reference in database
-        const { error: imageError } = await supabase.from("listing_images").insert({
-          listing_id: listing.id,
-          url: publicURL.publicUrl,
-          position: i,
+      // 3. Upload images if any
+      if (data.images?.length > 0) {
+        const imagePromises = data.images.map(async (file: File, index: number) => {
+          const fileExt = file.name.split(".").pop()
+          const fileName = `${listing.id}/${index}.${fileExt}`
+          const filePath = `listings/${fileName}`
+
+          const { error: uploadError } = await supabase.storage
+            .from("listings")
+            .upload(filePath, file)
+
+          if (uploadError) throw uploadError
+
+          const { data: { publicUrl } } = supabase.storage
+            .from("listings")
+            .getPublicUrl(filePath)
+
+          return {
+            listing_id: listing.id,
+            url: publicUrl,
+            position: index,
+          }
         })
 
-        if (imageError) throw imageError
+        const images = await Promise.all(imagePromises)
 
-        // Update progress
-        setUploadProgress(Math.round(((i + 1) / images.length) * 100))
+        const { error: imageError } = await supabase
+          .from("listing_images")
+          .insert(images)
+
+        if (imageError) throw imageError
+      }
+
+      // 4. Create or update tags
+      if (data.tags?.length > 0) {
+        const tagPromises = data.tags.map(async (tagName: string) => {
+          const slug = tagName.toLowerCase().replace(/\s+/g, "-")
+          
+          // Check if tag exists
+          const { data: existingTag } = await supabase
+            .from("tags")
+            .select()
+            .eq("slug", slug)
+            .single()
+
+          if (!existingTag) {
+            // Create new tag
+            const { data: newTag, error: tagError } = await supabase
+              .from("tags")
+              .insert({
+                name: tagName,
+                slug,
+              })
+              .select()
+              .single()
+
+            if (tagError) throw tagError
+            return newTag
+          }
+
+          return existingTag
+        })
+
+        await Promise.all(tagPromises)
       }
 
       toast({
-        title: "Success",
-        description: "Listing created successfully!",
+        title: "Success!",
+        description: "Your listing has been created successfully.",
       })
-      form.reset()
+
+      // Clear form data from localStorage
+      localStorage.removeItem("new-listing-form")
+
+      // Redirect to the listing page
       router.push(`/listings/${listing.id}`)
-      router.refresh()
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating listing:", error)
-      setUploadError(error.message || "There was an error creating your listing")
       toast({
         title: "Error",
-        description: "Failed to create listing. Please try again.",
+        description: "There was an error creating your listing. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -145,14 +291,31 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
             <CardContent className="pt-6">
               <FormField
                 control={form.control}
-                name="title"
+                name="category_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter a descriptive title" {...field} />
-                    </FormControl>
-                    <FormDescription>Make your title clear and attention-grabbing</FormDescription>
+                    <FormLabel>Category</FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value)
+                        handleCategoryChange(value)
+                      }}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>Choose the category for your listing</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -160,161 +323,173 @@ export default function NewListingForm({ categories, locations, userId }: NewLis
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe your item or service in detail"
-                        className="min-h-32 resize-y"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>Include condition, features, and any other relevant details</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem>
-                      <FormLabel>Price</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Enter price (leave empty if not applicable)"
-                          {...field}
-                          value={value ?? ""}
-                          onChange={(e) => {
-                            const val = e.target.value
-                            onChange(val === "" ? null : Number(val))
-                          }}
-                        />
-                      </FormControl>
-                      <FormDescription>Enter a fair price or leave empty for "Contact for price"</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="contact_info"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contact Information</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Phone number or email for interested buyers" {...field} />
-                      </FormControl>
-                      <FormDescription>How should potential buyers contact you?</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="category_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
+          {selectedCategorySlug && (
+            <>
+              <Card>
+                <CardContent className="pt-6">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
+                          <Input placeholder="Enter a descriptive title" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>Choose the category for your listing</FormDescription>
-                      <FormMessage />
-                    </FormItem>
+                        <FormDescription>
+                          Make your title clear and specific to attract potential buyers.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Provide detailed information about your listing"
+                            className="min-h-[150px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Include key details, features, and any relevant information.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Price</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={0.01}
+                            placeholder="Enter price"
+                            value={field.value ?? ""}
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Enter the price in your local currency.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <LocationField control={form.control} setValue={form.setValue} disabled={isSubmitting} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {renderCategoryFields()}
+
+              <Card>
+                <CardContent className="pt-6">
+                  <FormField
+                    control={form.control}
+                    name="images"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Images</FormLabel>
+                        <FormControl>
+                          <ImageUploadZone
+                            value={field.value}
+                            onChange={field.onChange}
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Upload up to 10 images. The first image will be your main listing photo.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <FormField
+                    control={form.control}
+                    name="tags"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tags</FormLabel>
+                        <FormControl>
+                          <TagInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Add relevant tags to help buyers find your listing.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <FormField
+                    control={form.control}
+                    name="contact_info"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contact Information</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Enter your preferred contact method and details"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Specify how buyers can contact you (phone, email, etc.).
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating listing...
+                    </>
+                  ) : (
+                    "Create listing"
                   )}
-                />
-
-                <LocationField control={form.control} setValue={form.setValue} disabled={isSubmitting} />
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium">Images</h3>
-                  <p className="text-sm text-muted-foreground">Upload images of your item</p>
-                </div>
-
-                <ImageUploadZone
-                  onFilesSelected={setImages}
-                  maxFiles={5}
-                  disabled={isSubmitting}
-                  progress={uploadProgress}
-                  error={uploadError}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium">Tags</h3>
-                  <p className="text-sm text-muted-foreground">Add relevant tags to help buyers find your listing</p>
-                </div>
-
-                <TagInput
-                  value={tags}
-                  onChange={setTags}
-                  maxTags={5}
-                  placeholder="Type a tag and press Enter"
-                  disabled={isSubmitting}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating listing...
-                </>
-              ) : (
-                "Create listing"
-              )}
-            </Button>
-          </div>
+            </>
+          )}
         </form>
       </Form>
     </motion.div>

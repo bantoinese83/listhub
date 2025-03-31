@@ -1,139 +1,217 @@
-# ListHub
+# ListHub - Your Ultimate Listing Platform
 
-A modern marketplace platform built with Next.js, Supabase, and TypeScript. ListHub allows users to create, browse, and manage listings with features like real-time messaging, location-based search, and user verification.
+A modern, feature-rich platform for creating and managing various types of listings. Built with Next.js, Supabase, and Stripe.
 
 ## Features
 
-- 🏠 **Listing Management**
-  - Create and manage listings with multiple images
-  - Camera integration for taking listing photos
-  - Rich text descriptions and tags
-  - Location-based listing creation
-  - Category-based organization
+### Core Features
+- 🔍 Advanced search and filtering
+- 📱 Responsive design for all devices
+- 🔒 Secure authentication and authorization
+- 📍 Location-based listings with Google Maps integration
+- 🏷️ Tag-based categorization
+- 📸 Image upload and management
+- 💬 Contact form for listing inquiries
 
-- 🔍 **Advanced Search & Filtering**
-  - Category-based browsing with listing counts
-  - Price range filtering
-  - Location-based search
-  - Tag-based filtering
-  - Sort options (newest, price, etc.)
-  - Real-time search in categories
+### 🤖 ListHub Agent
+- **AI-Powered Listing Assistant**
+  - Smart listing creation with natural language input
+  - Automatic category detection
+  - Intelligent field suggestions
+  - Real-time content optimization
+  - SEO recommendations
+  - Price suggestions based on market data
+  - Image enhancement suggestions
+  - Tag recommendations
+  - Location optimization tips
+  - Contact information validation
 
-- 👥 **User Features**
-  - User profiles with avatar support
-  - Profile picture upload with camera integration
-  - Favorites system
-  - Real-time messaging between users
-  - User verification system
-  - Profile customization
+- **Smart Features**
+  - Natural language processing for listing descriptions
+  - Automatic content categorization
+  - Intelligent pricing recommendations
+  - SEO optimization suggestions
+  - Image quality analysis
+  - Tag relevance scoring
+  - Location-based insights
+  - Market trend analysis
+  - Competitor price tracking
+  - Listing performance predictions
 
-- 🗺️ **Map Integration**
-  - Interactive map view of listings
-  - Location-based filtering
-  - Custom map markers
+- **Pro Features** (Available in Pro and Enterprise tiers)
+  - Bulk listing creation
+  - Advanced analytics
+  - Custom AI training
+  - API access
+  - Priority processing
+  - Custom integrations
+  - White-label options
 
-- 📱 **Responsive Design**
-  - Mobile-first approach
-  - Dark/Light mode support
-  - Optimized for all devices
-  - Responsive navigation
+### Category-Specific Features
+- 🚗 Vehicle Listings
+  - Make, model, year tracking
+  - Mileage and condition details
+  - VIN number support
+  - Vehicle type categorization
 
-- 🔒 **Security & Trust**
-  - User verification system
-  - Report listing functionality
-  - Safety tips and guidelines
-  - Secure messaging system
-  - Row Level Security (RLS) for data protection
+- 🏠 Housing Listings
+  - Property type classification
+  - Bedroom and bathroom counts
+  - Square footage tracking
+  - Amenities list
 
-## Tech Stack
+- 💼 Job Listings
+  - Employment type (full-time, part-time, etc.)
+  - Experience level requirements
+  - Salary range specification
+  - Remote work options
 
-- **Frontend**: Next.js 14, React, TypeScript
-- **Styling**: Tailwind CSS, shadcn/ui
-- **Backend**: Supabase (PostgreSQL, Auth, Storage)
-- **Maps**: Google Maps API
-- **State Management**: React Hooks
-- **Form Handling**: React Hook Form, Zod
-- **UI Components**: Framer Motion, Lucide Icons
-- **Image Optimization**: Next.js Image Component
+- 🛠️ Service Listings
+  - Service type categorization
+  - Pricing options
+  - Availability scheduling
+  - Service area definition
+
+### Subscription Features
+- 🆓 Free tier with basic features
+  - 3 active listings
+  - 5 images per listing
+  - Basic search and filtering
+  - Standard placement
+  - Basic analytics
+
+- 💎 Basic tier ($9.99/month)
+  - 10 active listings
+  - 10 images per listing
+  - Priority placement
+  - Advanced search and filtering
+  - Basic analytics
+  - ListHub Agent access
+  - Email support
+
+- ⭐ Pro tier (Coming Soon)
+  - Unlimited listings
+  - 20 images per listing
+  - Featured listings
+  - Advanced analytics
+  - Bulk management
+  - API access
+  - Priority support
+  - Custom integrations
+
+- 🏢 Enterprise tier (Coming Soon)
+  - All Pro features
+  - Custom domain support
+  - Team management
+  - Custom integrations
+  - Dedicated support
+  - White-label options
+  - Advanced AI features
 
 ## Getting Started
 
 ### Prerequisites
-
-- Node.js 18.x or later
-- npm or pnpm
+- Node.js 18+ and npm
 - Supabase account
+- Stripe account
 - Google Maps API key
-
-### Environment Variables
-
-Create a `.env.local` file in the root directory with the following variables:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-```
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/bantoinese83/listhub.git
+git clone https://github.com/yourusername/listhub.git
 cd listhub
 ```
 
 2. Install dependencies:
 ```bash
 npm install
-# or
-pnpm install
 ```
 
-3. Run the development server:
+3. Set up environment variables:
+```bash
+cp .env.example .env.local
+```
+Fill in your environment variables in `.env.local`
+
+4. Set up the database:
+```bash
+# Run the SQL commands in supabase/migrations/01_initial_schema.sql
+```
+
+5. Deploy Edge Functions:
+```bash
+supabase functions deploy
+```
+
+6. Start the development server:
 ```bash
 npm run dev
-# or
-pnpm dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Environment Variables
 
-### Database Setup
+Required environment variables:
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-1. Create a new Supabase project
-2. Run the SQL migrations in the `supabase/migrations` directory
-3. Set up the necessary storage buckets:
-   - Create an "avatars" bucket for user profile pictures
-   - Create a "listing-images" bucket for listing photos
-4. Configure storage policies:
-   - Enable public access for the avatars bucket
-   - Set up RLS policies for secure access control
-5. Configure authentication providers in Supabase
+# Stripe
+STRIPE_SECRET_KEY=your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 
-## Project Structure
+# Stripe Product IDs
+STRIPE_BASIC_PRODUCT_ID=your_basic_product_id
+STRIPE_PRO_PRODUCT_ID=your_pro_product_id
+STRIPE_ENTERPRISE_PRODUCT_ID=your_enterprise_product_id
 
+# Stripe Price IDs
+STRIPE_BASIC_PRICE_ID=your_basic_price_id
+STRIPE_PRO_PRICE_ID=your_pro_price_id
+STRIPE_ENTERPRISE_PRICE_ID=your_enterprise_price_id
+
+# Google Maps
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 ```
-listhub/
-├── app/                    # Next.js app directory
-│   ├── api/               # API routes
-│   ├── auth/              # Authentication pages
-│   ├── browse/            # Listing browse pages
-│   ├── categories/        # Category pages
-│   ├── dashboard/         # User dashboard
-│   ├── listings/          # Listing pages
-│   └── profile/           # User profile pages
-├── components/            # React components
-│   ├── ui/               # UI components
-│   └── ...               # Feature components
-├── lib/                   # Utility functions and services
-│   ├── supabase/         # Supabase client and types
-│   └── verification/     # Verification services
-├── public/               # Static assets
-├── supabase/            # Supabase configuration
-│   └── migrations/      # Database migrations
-└── styles/              # Global styles
-```
+
+## Database Schema
+
+### Tables
+- `listings`: Main listings table
+- `listing_details`: Category-specific details
+- `listing_images`: Image storage
+- `listing_tags`: Tag management
+- `subscriptions`: Subscription tracking
+- `profiles`: User profiles
+
+## API Routes
+
+### Authentication
+- `/api/auth/signup`
+- `/api/auth/signin`
+- `/api/auth/signout`
+
+### Listings
+- `/api/listings`
+- `/api/listings/[id]`
+- `/api/listings/[id]/images`
+- `/api/listings/[id]/tags`
+
+### Subscriptions
+- `/api/subscriptions`
+- `/api/subscriptions/[id]`
+- `/api/webhooks/stripe`
+
+## Edge Functions
+
+### Subscription Management
+- `create-subscription`: Handle new subscription creation
+- `update-subscription`: Manage subscription updates
+- `cancel-subscription`: Process subscription cancellations
 
 ## Contributing
 
@@ -145,11 +223,15 @@ listhub/
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support, email support@listhub.com or join our Slack channel.
 
 ## Acknowledgments
 
-- [Next.js](https://nextjs.org/)
-- [Supabase](https://supabase.com/)
-- [shadcn/ui](https://ui.shadcn.com/)
-- [Tailwind CSS](https://tailwindcss.com/) 
+- Next.js team for the amazing framework
+- Supabase for the backend infrastructure
+- Stripe for payment processing
+- Google Maps for location services 
