@@ -2,12 +2,19 @@ import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
+console.log("Environment variables available:", {
+  hasGeminiKey: !!process.env.GEMINI_API_KEY,
+  envKeys: Object.keys(process.env).filter(key => key.includes('GEMINI'))
+});
+
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 
 if (!GEMINI_API_KEY) {
   console.error("Missing GEMINI_API_KEY environment variable")
   throw new Error("GEMINI_API_KEY environment variable is not set")
 }
+console.log("GEMINI_API_KEY:", GEMINI_API_KEY)
+
 
 const SYSTEM_PROMPT = `You are a helpful assistant that converts natural language queries about listings into SQL queries.
 The database has the following tables and columns:
@@ -67,7 +74,7 @@ export async function POST(request: Request) {
 
     // Initialize the Gemini API client
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" })
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
 
     try {
       // Generate content with structured output
